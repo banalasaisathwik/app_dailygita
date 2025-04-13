@@ -1,8 +1,21 @@
+
 // app/screens/VideosTab.tsx
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  FlatList, 
+  TouchableOpacity, 
+  Image, 
+  ScrollView,
+  Dimensions
+} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
+
+// Get device width for responsive design
+const { width } = Dimensions.get('window');
 
 // Sample data for video suggestions
 const VIDEOS = [
@@ -63,90 +76,114 @@ const VIDEOS = [
   },
 ];
 
+// Categories with icons
 const CATEGORIES = [
-  'All',
-  'Philosophy',
-  'Meditation',
-  'Yoga',
-  'Bhakti',
-  'Culture',
-  'Lifestyle'
+  { id: 'all', name: 'All', icon: '🎬' },
+  { id: 'philosophy', name: 'Philosophy', icon: '🧠' },
+  { id: 'meditation', name: 'Meditation', icon: '🧘‍♀️' },
+  { id: 'yoga', name: 'Yoga', icon: '🌿' },
+  { id: 'bhakti', name: 'Bhakti', icon: '🙏' },
+  { id: 'culture', name: 'Culture', icon: '🏛️' },
+  { id: 'lifestyle', name: 'Lifestyle', icon: '✨' },
 ];
 
-const VideoCard = ({ video, toggleSave, colors }) => {
+const VideoCard = ({ video, toggleSave, colors, onPress }) => {
   const [isSaved, setIsSaved] = useState(video.isSaved);
   
-  const handleSave = () => {
+  const handleSave = (e) => {
+    e.stopPropagation();
     setIsSaved(!isSaved);
     toggleSave(video.id);
   };
   
   return (
-    <View style={[styles.videoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <TouchableOpacity 
+      style={[styles.videoCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      {/* Thumbnail with duration */}
       <View style={styles.thumbnailContainer}>
         <Image source={{ uri: video.thumbnail }} style={styles.thumbnail} />
-        
         <View style={styles.durationBadge}>
           <Text style={styles.durationText}>{video.duration}</Text>
         </View>
       </View>
       
-      <View style={styles.videoDetails}>
+      {/* Video info */}
+      <View style={styles.videoInfo}>
+        {/* Video title and save button */}
         <View style={styles.videoHeader}>
-          <View style={styles.videoTitleContainer}>
-            <Text style={[styles.videoTitle, { color: colors.text }]} numberOfLines={2}>
-              {video.title}
-            </Text>
-          </View>
+          <Text style={[styles.videoTitle, { color: colors.text }]} numberOfLines={2}>
+            {video.title}
+          </Text>
           
-          <TouchableOpacity onPress={handleSave}>
+          <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
             <FontAwesome 
               name={isSaved ? 'bookmark' : 'bookmark-o'} 
-              size={20} 
+              size={18} 
               color={isSaved ? colors.tint : colors.gray[500]} 
             />
           </TouchableOpacity>
         </View>
         
-        <Text style={[styles.speakerName, { color: colors.gray[600] }]}>
-          {video.speaker}
-        </Text>
-        
-        <View style={styles.videoStats}>
-          <View style={[styles.categoryBadge, { backgroundColor: colors.subtle }]}>
-            <Text style={[styles.categoryText, { color: colors.tint }]}>{video.category}</Text>
+        {/* Speaker and views */}
+        <View style={styles.metaRow}>
+          <Text style={[styles.speakerName, { color: colors.gray[600] }]} numberOfLines={1}>
+            {video.speaker}
+          </Text>
+          <View style={styles.viewsContainer}>
+            <FontAwesome name="eye" size={12} color={colors.gray[500]} />
+            <Text style={[styles.viewsText, { color: colors.gray[500] }]}>
+              {video.views}
+            </Text>
           </View>
-          
-          <Text style={[styles.viewsText, { color: colors.gray[500] }]}>
-            <FontAwesome name="eye" size={14} color={colors.gray[500]} /> {video.views} views
+        </View>
+        
+        {/* Category tag */}
+        <View style={[styles.categoryPill, { backgroundColor: colors.subtle }]}>
+          <Text style={[styles.categoryText, { color: colors.tint }]}>
+            {video.category}
           </Text>
         </View>
         
-        <Text style={[styles.videoDescription, { color: colors.text }]} numberOfLines={2}>
-          {video.description}
-        </Text>
-        
-        <TouchableOpacity 
-          style={[styles.watchButton, { backgroundColor: colors.tint }]}
-          onPress={() => {/* Handle watch video */}}
-        >
-          <FontAwesome name="play" size={14} color="white" style={styles.playIcon} />
-          <Text style={styles.watchButtonText}>Watch Video</Text>
-        </TouchableOpacity>
+        {/* Action buttons */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={[styles.watchButton, { backgroundColor: colors.tint }]}
+          >
+            <FontAwesome name="play" size={12} color="white" style={styles.playIcon} />
+            <Text style={styles.watchButtonText}>Watch</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.actionButton}>
+            <FontAwesome name="share" size={14} color={colors.gray[500]} />
+            <Text style={[styles.actionText, { color: colors.gray[500] }]}>
+              Share
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.actionButton}>
+            <FontAwesome name="plus" size={14} color={colors.gray[500]} />
+            <Text style={[styles.actionText, { color: colors.gray[500] }]}>
+              Add to
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const VideosTab = () => {
   const { theme } = useTheme();
   const colors = theme.colors;
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [videos, setVideos] = useState(VIDEOS);
   
-  const filteredVideos = selectedCategory === 'All'
+  const filteredVideos = selectedCategory === 'all'
     ? videos
-    : videos.filter(video => video.category === selectedCategory);
+    : videos.filter(video => video.category.toLowerCase() === selectedCategory);
     
   const toggleSave = (id) => {
     setVideos(prevVideos => 
@@ -156,51 +193,71 @@ const VideosTab = () => {
     );
   };
   
+  const handleVideoPress = (id) => {
+    console.log(`Video ${id} pressed`);
+    // Navigate to video detail screen or play video
+  };
+  
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Categories */}
-      <ScrollView 
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesContainer}
-      >
-        {CATEGORIES.map((category) => (
-          <TouchableOpacity 
-            key={category}
-            style={[
-              styles.categoryButton,
-              { 
-                backgroundColor: selectedCategory === category 
-                  ? colors.tint 
-                  : colors.subtle,
-              }
-            ]}
-            onPress={() => setSelectedCategory(category)}
-          >
-            <Text 
+      <View style={[styles.categoriesWrapper, { borderBottomColor: colors.border }]}>
+        <ScrollView 
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {CATEGORIES.map((category) => (
+            <TouchableOpacity 
+              key={category.id}
               style={[
-                styles.categoryButtonText, 
+                styles.categoryButton,
                 { 
-                  color: selectedCategory === category 
-                    ? 'white' 
-                    : colors.text 
+                  backgroundColor: selectedCategory === category.id 
+                    ? colors.tint 
+                    : colors.card,
+                  borderColor: colors.border,
                 }
               ]}
+              onPress={() => setSelectedCategory(category.id)}
             >
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              {category.icon && (
+                <Text style={styles.categoryIcon}>{category.icon}</Text>
+              )}
+              <Text 
+                style={[
+                  styles.categoryButtonText, 
+                  { 
+                    color: selectedCategory === category.id 
+                      ? 'white' 
+                      : colors.text 
+                  }
+                ]}
+              >
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
       
+      {/* Videos list */}
       <FlatList
         data={filteredVideos}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <VideoCard video={item} toggleSave={toggleSave} colors={colors} />
+          <VideoCard 
+            video={item} 
+            toggleSave={toggleSave} 
+            colors={colors} 
+            onPress={() => handleVideoPress(item.id)}
+          />
         )}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => (
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+        )}
       />
     </View>
   );
@@ -210,117 +267,143 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  categoriesWrapper: {
+    borderBottomWidth: 1,
+  },
   categoriesContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+    borderWidth: 1,
+  },
+  categoryIcon: {
+    marginRight: 4,
+    fontSize: 12,
   },
   categoryButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
   },
   listContainer: {
-    padding: 16,
+    paddingBottom: 16,
   },
   videoCard: {
-    borderRadius: 12,
-    marginBottom: 20,
-    borderWidth: 0.5,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    backgroundColor: 'white',
+    padding: 12,
   },
   thumbnailContainer: {
     position: 'relative',
+    height: 160,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 8,
   },
   thumbnail: {
     width: '100%',
-    height: 180,
+    height: '100%',
   },
   durationBadge: {
     position: 'absolute',
     bottom: 8,
     right: 8,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 4,
   },
   durationText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
-  videoDetails: {
-    padding: 16,
+  videoInfo: {
+    paddingTop: 4,
   },
   videoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
+    marginBottom: 6,
   },
-  videoTitleContainer: {
+  videoTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 20,
     flex: 1,
     paddingRight: 8,
   },
-  videoTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    lineHeight: 22,
+  saveButton: {
+    padding: 4,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   speakerName: {
-    fontSize: 14,
-    marginBottom: 8,
+    fontSize: 13,
+    flex: 1,
+    paddingRight: 8,
   },
-  videoStats: {
+  viewsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  categoryBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '500',
   },
   viewsText: {
     fontSize: 12,
+    marginLeft: 4,
   },
-  videoDescription: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 16,
+  categoryPill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  categoryText: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   watchButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    marginRight: 16,
   },
   playIcon: {
-    marginRight: 8,
+    marginRight: 4,
   },
   watchButtonText: {
     color: 'white',
+    fontSize: 12,
     fontWeight: '600',
-    fontSize: 14,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  actionText: {
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  separator: {
+    height: 1,
+    width: '100%',
   },
 });
 

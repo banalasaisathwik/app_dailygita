@@ -1,8 +1,20 @@
 // app/screens/MeditationsTab.tsx
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  FlatList, 
+  TouchableOpacity, 
+  Image, 
+  ScrollView,
+  Dimensions
+} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
+
+// Get device width for responsive design
+const { width } = Dimensions.get('window');
 
 // Sample data for meditation sessions
 const MEDITATIONS = [
@@ -73,25 +85,25 @@ const MEDITATIONS = [
   },
 ];
 
-// Filter options
+// Filter options with icons
 const FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'popular', label: 'Popular' },
-  { id: 'recent', label: 'New' },
-  { id: 'beginner', label: 'Beginner' },
-  { id: 'intermediate', label: 'Intermediate' },
-  { id: 'advanced', label: 'Advanced' },
+  { id: 'all', label: 'All', icon: '✨' },
+  { id: 'popular', label: 'Popular', icon: '🔥' },
+  { id: 'recent', label: 'New', icon: '🆕' },
+  { id: 'beginner', label: 'Beginner', icon: '🌱' },
+  { id: 'intermediate', label: 'Intermediate', icon: '🌿' },
+  { id: 'advanced', label: 'Advanced', icon: '🌳' },
 ];
 
-// Categories
+// Categories with icons
 const CATEGORIES = [
-  'All',
-  'Morning',
-  'Evening',
-  'Mindfulness',
-  'Spiritual',
-  'Breath',
-  'Sleep',
+  { id: 'all', name: 'All', icon: '🧘‍♀️' },
+  { id: 'morning', name: 'Morning', icon: '🌅' },
+  { id: 'evening', name: 'Evening', icon: '🌙' },
+  { id: 'mindfulness', name: 'Mindfulness', icon: '🧠' },
+  { id: 'spiritual', name: 'Spiritual', icon: '✨' },
+  { id: 'breath', name: 'Breath', icon: '💨' },
+  { id: 'sleep', name: 'Sleep', icon: '😴' },
 ];
 
 const MeditationCard = ({ meditation, colors, onPlay }) => {
@@ -99,46 +111,56 @@ const MeditationCard = ({ meditation, colors, onPlay }) => {
     <TouchableOpacity 
       style={[styles.meditationCard, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={() => onPlay(meditation.id)}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
     >
-      <Image source={{ uri: meditation.cover }} style={styles.meditationCover} />
+      {/* Image and play button */}
+      <View style={styles.thumbnailContainer}>
+        <Image source={{ uri: meditation.cover }} style={styles.thumbnail} />
+        <TouchableOpacity 
+          style={[styles.playOverlay, { backgroundColor: `${colors.tint}CC` }]}
+          onPress={() => onPlay(meditation.id)}
+        >
+          <FontAwesome name="play" size={24} color="white" />
+        </TouchableOpacity>
+        
+        {/* Duration badge */}
+        <View style={styles.durationBadge}>
+          <Text style={styles.durationText}>{meditation.duration}</Text>
+        </View>
+      </View>
       
-      <View style={styles.meditationInfo}>
-        <View style={styles.meditationHeader}>
-          <View>
-            <Text style={[styles.meditationTitle, { color: colors.text }]} numberOfLines={1}>
-              {meditation.title}
-            </Text>
-            <Text style={[styles.teacherName, { color: colors.gray[600] }]}>
-              by {meditation.teacher}
-            </Text>
-          </View>
+      {/* Meditation info */}
+      <View style={styles.infoContainer}>
+        <View style={styles.headerRow}>
+          <Text style={[styles.meditationTitle, { color: colors.text }]} numberOfLines={1}>
+            {meditation.title}
+          </Text>
           
-          <TouchableOpacity 
-            style={[styles.playButton, { backgroundColor: colors.tint }]}
-            onPress={() => onPlay(meditation.id)}
-          >
-            <FontAwesome name="play" size={16} color="white" />
-          </TouchableOpacity>
+          {meditation.isPopular && (
+            <View style={[styles.popularBadge, { backgroundColor: colors.warning }]}>
+              <Text style={styles.popularText}>Popular</Text>
+            </View>
+          )}
         </View>
         
-        <View style={styles.meditationMeta}>
-          <View style={[styles.metaItem, { backgroundColor: colors.subtle }]}>
-            <Text style={[styles.metaText, { color: colors.tint }]}>{meditation.duration}</Text>
-          </View>
-          
-          <View style={[styles.metaItem, { backgroundColor: colors.subtle }]}>
+        <Text style={[styles.teacherName, { color: colors.gray[600] }]} numberOfLines={1}>
+          by {meditation.teacher}
+        </Text>
+        
+        {/* Meta tags */}
+        <View style={styles.metaContainer}>
+          <View style={[styles.metaTag, { backgroundColor: colors.subtle }]}>
             <Text style={[styles.metaText, { color: colors.tint }]}>{meditation.type}</Text>
           </View>
           
-          <View style={[styles.metaItem, { backgroundColor: colors.subtle }]}>
+          <View style={[styles.metaTag, { backgroundColor: colors.subtle }]}>
             <Text style={[styles.metaText, { color: colors.tint }]}>{meditation.level}</Text>
           </View>
+          
+          <View style={[styles.metaTag, { backgroundColor: colors.subtle }]}>
+            <Text style={[styles.metaText, { color: colors.tint }]}>{meditation.category}</Text>
+          </View>
         </View>
-        
-        <Text style={[styles.meditationDescription, { color: colors.text }]} numberOfLines={2}>
-          {meditation.description}
-        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -149,12 +171,13 @@ const MeditationsTab = () => {
   const colors = theme.colors;
   
   const [activeFilter, setActiveFilter] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   
   // Apply filters
   const filteredMeditations = MEDITATIONS.filter(meditation => {
     // Category filter
-    const categoryMatch = selectedCategory === 'All' || meditation.category === selectedCategory;
+    const categoryMatch = selectedCategory === 'all' || 
+      meditation.category.toLowerCase() === selectedCategory;
     
     // Type filter
     let typeMatch = true;
@@ -175,82 +198,96 @@ const MeditationsTab = () => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Filter pills */}
-      <ScrollView 
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtersContainer}
-      >
-        {FILTERS.map((filter) => (
-          <TouchableOpacity 
-            key={filter.id}
-            style={[
-              styles.filterButton,
-              { 
-                backgroundColor: activeFilter === filter.id 
-                  ? colors.tint 
-                  : colors.subtle,
-              }
-            ]}
-            onPress={() => setActiveFilter(filter.id)}
-          >
-            <Text 
+      <View style={[styles.filtersWrapper, { borderBottomColor: colors.border }]}>
+        <ScrollView 
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersContainer}
+        >
+          {FILTERS.map((filter) => (
+            <TouchableOpacity 
+              key={filter.id}
               style={[
-                styles.filterButtonText, 
+                styles.filterButton,
                 { 
-                  color: activeFilter === filter.id 
-                    ? 'white' 
-                    : colors.text 
+                  backgroundColor: activeFilter === filter.id 
+                    ? colors.tint 
+                    : colors.card,
+                  borderColor: colors.border,
                 }
               ]}
+              onPress={() => setActiveFilter(filter.id)}
             >
-              {filter.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              {filter.icon && (
+                <Text style={styles.filterIcon}>{filter.icon}</Text>
+              )}
+              <Text 
+                style={[
+                  styles.filterButtonText, 
+                  { 
+                    color: activeFilter === filter.id 
+                      ? 'white' 
+                      : colors.text 
+                  }
+                ]}
+              >
+                {filter.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
       
       {/* Categories */}
-      <ScrollView 
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesContainer}
-      >
-        {CATEGORIES.map((category) => (
-          <TouchableOpacity 
-            key={category}
-            style={[
-              styles.categoryButton,
-              { 
-                backgroundColor: selectedCategory === category 
-                  ? colors.orange[100] 
-                  : 'transparent',
-                borderColor: colors.orange[300],
-              }
-            ]}
-            onPress={() => setSelectedCategory(category)}
-          >
-            <Text 
+      <View style={styles.categoriesWrapper}>
+        <ScrollView 
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {CATEGORIES.map((category) => (
+            <TouchableOpacity 
+              key={category.id}
               style={[
-                styles.categoryButtonText, 
-                { color: colors.orange[700] }
+                styles.categoryButton,
+                { 
+                  backgroundColor: selectedCategory === category.id 
+                    ? colors.orange[100] 
+                    : 'transparent',
+                  borderColor: colors.orange[300],
+                }
               ]}
+              onPress={() => setSelectedCategory(category.id)}
             >
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              {category.icon && (
+                <Text style={styles.categoryIcon}>{category.icon}</Text>
+              )}
+              <Text 
+                style={[
+                  styles.categoryButtonText, 
+                  { color: colors.orange[700] }
+                ]}
+              >
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
       
-      {/* Meditation list */}
+      {/* Meditation grid */}
       <FlatList
         data={filteredMeditations}
         keyExtractor={(item) => item.id}
+        numColumns={2}
         renderItem={({ item }) => (
-          <MeditationCard 
-            meditation={item} 
-            colors={colors} 
-            onPlay={handlePlayMeditation} 
-          />
+          <View style={styles.gridItem}>
+            <MeditationCard 
+              meditation={item} 
+              colors={colors} 
+              onPlay={handlePlayMeditation} 
+            />
+          </View>
         )}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
@@ -263,99 +300,143 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  filtersWrapper: {
+    borderBottomWidth: 1,
+  },
   filtersContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  categoriesContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
     borderWidth: 1,
   },
-  categoryButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
+  filterIcon: {
+    marginRight: 4,
+    fontSize: 12,
   },
-  listContainer: {
-    padding: 16,
-  },
-  meditationCard: {
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: 'hidden',
-    borderWidth: 0.5,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  meditationCover: {
-    width: '100%',
-    height: 160,
-  },
-  meditationInfo: {
-    padding: 16,
-  },
-  meditationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  meditationTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  teacherName: {
-    fontSize: 14,
-  },
-  playButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  meditationMeta: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  metaItem: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
-  },
-  metaText: {
+  filterButtonText: {
     fontSize: 12,
     fontWeight: '500',
   },
-  meditationDescription: {
+  categoriesWrapper: {
+    paddingVertical: 4,
+  },
+  categoriesContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+    borderWidth: 1,
+  },
+  categoryIcon: {
+    marginRight: 4,
+    fontSize: 12,
+  },
+  categoryButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  listContainer: {
+    padding: 8,
+  },
+  gridItem: {
+    width: '50%',
+    padding: 4,
+  },
+  meditationCard: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 0.5,
+    height: 220,
+  },
+  thumbnailContainer: {
+    height: 120,
+    position: 'relative',
+  },
+  thumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  playOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    opacity: 0,
+  },
+  durationBadge: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  durationText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  infoContainer: {
+    padding: 8,
+    flex: 1,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  meditationTitle: {
     fontSize: 14,
-    lineHeight: 20,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  popularBadge: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 4,
+  },
+  popularText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  teacherName: {
+    fontSize: 12,
+    marginBottom: 6,
+  },
+  metaContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  metaTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginRight: 4,
+    marginBottom: 4,
+  },
+  metaText: {
+    fontSize: 10,
+    fontWeight: '500',
   },
 });
 

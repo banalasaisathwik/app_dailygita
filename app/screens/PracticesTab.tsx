@@ -7,12 +7,15 @@ import {
   FlatList, 
   TouchableOpacity, 
   ScrollView,
-  Image,
   ProgressBarAndroid,
-  Platform
+  Platform,
+  Dimensions
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
+
+// Get device width for responsive design
+const { width } = Dimensions.get('window');
 
 // Import ProgressViewIOS for iOS
 let ProgressViewIOS;
@@ -114,46 +117,62 @@ const PRACTICES = [
   },
 ];
 
+// Categories with icons
 const CATEGORIES = [
-  'All',
-  'Meditation',
-  'Yoga',
-  'Mindfulness',
-  'Study',
-  'Ritual',
-  'Service'
+  { id: 'all', name: 'All', icon: '✨' },
+  { id: 'meditation', name: 'Meditation', icon: '🧘‍♀️' },
+  { id: 'yoga', name: 'Yoga', icon: '🌿' },
+  { id: 'mindfulness', name: 'Mindfulness', icon: '🧠' },
+  { id: 'study', name: 'Study', icon: '📚' },
+  { id: 'ritual', name: 'Ritual', icon: '🔥' },
+  { id: 'service', name: 'Service', icon: '🤲' },
 ];
 
 const PracticeCard = ({ practice, onToggleComplete, onViewDetails, colors }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
-  const toggleExpand = () => {
+  const handleToggleExpand = (e) => {
+    e.stopPropagation();
     setIsExpanded(!isExpanded);
   };
   
+  // Calculate streak badge color
+  const getStreakColor = (streak) => {
+    if (streak >= 21) return colors.success;
+    if (streak >= 7) return colors.warning;
+    return colors.orange[400];
+  };
+  
   return (
-    <View style={[styles.practiceCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View style={[styles.practiceCard, { 
+      backgroundColor: colors.card,
+      borderLeftColor: practice.isCompleted ? colors.success : colors.tint,
+      borderTopColor: colors.border,
+      borderRightColor: colors.border,
+      borderBottomColor: colors.border,
+    }]}>
       <TouchableOpacity 
-        style={styles.practiceHeader}
-        onPress={toggleExpand}
+        style={styles.cardHeader}
+        onPress={() => onViewDetails(practice.id)}
         activeOpacity={0.7}
       >
-        <View style={styles.practiceMain}>
-          <View style={styles.iconContainer}>
+        {/* Practice icon and info */}
+        <View style={styles.headerMain}>
+          <View style={styles.iconWrapper}>
             <Text style={styles.practiceIcon}>{practice.icon}</Text>
           </View>
           
           <View style={styles.practiceInfo}>
-            <Text style={[styles.practiceTitle, { color: colors.text }]}>
+            <Text style={[styles.practiceTitle, { color: colors.text }]} numberOfLines={1}>
               {practice.title}
             </Text>
             
-            <View style={styles.practiceMeta}>
-              <Text style={[styles.practiceDuration, { color: colors.gray[600] }]}>
+            <View style={styles.metaRow}>
+              <Text style={[styles.durationText, { color: colors.gray[600] }]}>
                 {practice.duration}
               </Text>
               
-              <View style={[styles.categoryBadge, { backgroundColor: colors.subtle }]}>
+              <View style={[styles.categoryTag, { backgroundColor: colors.subtle }]}>
                 <Text style={[styles.categoryText, { color: colors.tint }]}>
                   {practice.category}
                 </Text>
@@ -162,60 +181,58 @@ const PracticeCard = ({ practice, onToggleComplete, onViewDetails, colors }) => 
           </View>
         </View>
         
-        <View style={styles.practiceActions}>
+        {/* Action buttons */}
+        <View style={styles.headerActions}>
           {practice.streak > 0 && (
-            <View style={styles.streakBadge}>
+            <View style={[styles.streakBadge, { backgroundColor: getStreakColor(practice.streak) }]}>
               <Text style={styles.streakText}>🔥 {practice.streak}</Text>
             </View>
           )}
           
           <TouchableOpacity
-            style={[
-              styles.completeButton,
-              { 
-                backgroundColor: practice.isCompleted 
-                  ? colors.success 
-                  : 'transparent',
-                borderColor: practice.isCompleted 
-                  ? colors.success 
-                  : colors.border,
-              }
-            ]}
+            style={[styles.completeButton, { 
+              backgroundColor: practice.isCompleted ? colors.success : 'transparent',
+              borderColor: practice.isCompleted ? colors.success : colors.border,
+            }]}
             onPress={() => onToggleComplete(practice.id)}
           >
             <FontAwesome 
               name={practice.isCompleted ? 'check' : 'circle-o'} 
-              size={20} 
+              size={18} 
               color={practice.isCompleted ? 'white' : colors.gray[500]} 
             />
           </TouchableOpacity>
-          
-          <FontAwesome 
-            name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-            size={16} 
-            color={colors.gray[500]} 
-          />
         </View>
       </TouchableOpacity>
       
       {/* Progress bar */}
-      <View style={styles.progressContainer}>
-        <Text style={[styles.progressText, { color: colors.gray[600] }]}>
-          Progress: {Math.round(practice.progress * 100)}%
-        </Text>
+      <View style={styles.progressSection}>
+        <View style={styles.progressLabelRow}>
+          <Text style={[styles.progressLabel, { color: colors.gray[600] }]}>
+            Progress: {Math.round(practice.progress * 100)}%
+          </Text>
+          
+          <TouchableOpacity onPress={handleToggleExpand}>
+            <FontAwesome 
+              name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+              size={14} 
+              color={colors.gray[500]} 
+            />
+          </TouchableOpacity>
+        </View>
         
         {Platform.OS === 'android' ? (
           <ProgressBarAndroid
             styleAttr="Horizontal"
             indeterminate={false}
             progress={practice.progress}
-            color={colors.tint}
+            color={practice.isCompleted ? colors.success : colors.tint}
             style={styles.progressBar}
           />
         ) : (
           <ProgressViewIOS
             progress={practice.progress}
-            progressTintColor={colors.tint}
+            progressTintColor={practice.isCompleted ? colors.success : colors.tint}
             trackTintColor={colors.gray[200]}
             style={styles.progressBar}
           />
@@ -224,16 +241,15 @@ const PracticeCard = ({ practice, onToggleComplete, onViewDetails, colors }) => 
       
       {/* Expanded content */}
       {isExpanded && (
-        <View style={styles.expandedContent}>
-          <Text style={[styles.descriptionTitle, { color: colors.text }]}>Description</Text>
+        <View style={[styles.expandedContent, { borderTopColor: colors.border }]}>
           <Text style={[styles.description, { color: colors.gray[700] }]}>
             {practice.description}
           </Text>
           
-          <Text style={[styles.stepsTitle, { color: colors.text }]}>Steps</Text>
+          <Text style={[styles.stepsHeader, { color: colors.text }]}>Steps:</Text>
           {practice.steps.map((step, index) => (
             <View key={index} style={styles.stepItem}>
-              <Text style={styles.stepNumber}>{index + 1}.</Text>
+              <Text style={[styles.stepBullet, { color: colors.tint }]}>•</Text>
               <Text style={[styles.stepText, { color: colors.text }]}>{step}</Text>
             </View>
           ))}
@@ -242,7 +258,7 @@ const PracticeCard = ({ practice, onToggleComplete, onViewDetails, colors }) => 
             style={[styles.detailsButton, { backgroundColor: colors.tint }]}
             onPress={() => onViewDetails(practice.id)}
           >
-            <Text style={styles.detailsButtonText}>View Details</Text>
+            <Text style={styles.detailsButtonText}>View Detail</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -253,12 +269,12 @@ const PracticeCard = ({ practice, onToggleComplete, onViewDetails, colors }) => 
 const PracticesTab = () => {
   const { theme } = useTheme();
   const colors = theme.colors;
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [practices, setPractices] = useState(PRACTICES);
   
-  const filteredPractices = selectedCategory === 'All'
+  const filteredPractices = selectedCategory === 'all'
     ? practices
-    : practices.filter(practice => practice.category === selectedCategory);
+    : practices.filter(practice => practice.category.toLowerCase() === selectedCategory);
     
   const toggleComplete = (id) => {
     setPractices(prevPractices => 
@@ -275,46 +291,76 @@ const PracticesTab = () => {
   };
   
   const viewDetails = (id) => {
-    // Handle view details
     console.log(`View details for practice: ${id}`);
+    // Handle navigation to details screen
   };
   
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Categories */}
-      <ScrollView 
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesContainer}
-      >
-        {CATEGORIES.map((category) => (
-          <TouchableOpacity 
-            key={category}
-            style={[
-              styles.categoryButton,
-              { 
-                backgroundColor: selectedCategory === category 
-                  ? colors.tint 
-                  : colors.subtle,
-              }
-            ]}
-            onPress={() => setSelectedCategory(category)}
-          >
-            <Text 
+      <View style={[styles.categoriesWrapper, { borderBottomColor: colors.border }]}>
+        <ScrollView 
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {CATEGORIES.map((category) => (
+            <TouchableOpacity 
+              key={category.id}
               style={[
-                styles.categoryButtonText, 
+                styles.categoryButton,
                 { 
-                  color: selectedCategory === category 
-                    ? 'white' 
-                    : colors.text 
+                  backgroundColor: selectedCategory === category.id 
+                    ? colors.tint 
+                    : colors.card,
+                  borderColor: colors.border,
                 }
               ]}
+              onPress={() => setSelectedCategory(category.id)}
             >
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              {category.icon && (
+                <Text style={styles.categoryIcon}>{category.icon}</Text>
+              )}
+              <Text 
+                style={[
+                  styles.categoryButtonText, 
+                  { 
+                    color: selectedCategory === category.id 
+                      ? 'white' 
+                      : colors.text 
+                  }
+                ]}
+              >
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+      
+      {/* Stats summary */}
+      <View style={[styles.statsBar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        <View style={styles.statItem}>
+          <Text style={[styles.statValue, { color: colors.text }]}>
+            {practices.filter(p => p.isCompleted).length}
+          </Text>
+          <Text style={[styles.statLabel, { color: colors.gray[600] }]}>Completed</Text>
+        </View>
+        
+        <View style={styles.statItem}>
+          <Text style={[styles.statValue, { color: colors.text }]}>
+            {practices.reduce((total, p) => total + p.streak, 0)}
+          </Text>
+          <Text style={[styles.statLabel, { color: colors.gray[600] }]}>Total Streak</Text>
+        </View>
+        
+        <View style={styles.statItem}>
+          <Text style={[styles.statValue, { color: colors.text }]}>
+            {practices.length - practices.filter(p => p.isCompleted).length}
+          </Text>
+          <Text style={[styles.statLabel, { color: colors.gray[600] }]}>Remaining</Text>
+        </View>
+      </View>
       
       <FlatList
         data={filteredPractices}
@@ -329,59 +375,86 @@ const PracticesTab = () => {
         )}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={{ height: 1 }} />}
       />
+      
+      {/* Floating Action Button */}
+      <TouchableOpacity 
+        style={[styles.fab, { backgroundColor: colors.tint }]}
+        onPress={() => {/* Handle add new practice */}}
+      >
+        <FontAwesome name="plus" size={20} color="white" />
+      </TouchableOpacity>
     </View>
   );
 };
+export default PracticesTab;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  categoriesWrapper: {
+    borderBottomWidth: 1,
+  },
   categoriesContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+    borderWidth: 1,
+  },
+  categoryIcon: {
+    marginRight: 4,
+    fontSize: 12,
   },
   categoryButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
   },
+  statsBar: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  statLabel: {
+    fontSize: 12,
+  },
   listContainer: {
-    padding: 16,
-    paddingBottom: 20,
+    paddingBottom: 80, // Space for FAB
   },
   practiceCard: {
-    borderRadius: 12,
-    marginBottom: 16,
-    borderWidth: 0.5,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderLeftWidth: 4,
+    borderTopWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
   },
-  practiceHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 16,
+    padding: 12,
   },
-  practiceMain: {
+  headerMain: {
     flexDirection: 'row',
     flex: 1,
   },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  iconWrapper: {
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -393,19 +466,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   practiceTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: 'bold',
     marginBottom: 4,
   },
-  practiceMeta: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  practiceDuration: {
+  durationText: {
     fontSize: 12,
     marginRight: 8,
   },
-  categoryBadge: {
+  categoryTag: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
@@ -414,84 +487,100 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '500',
   },
-  practiceActions: {
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   streakBadge: {
-    marginRight: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginRight: 8,
   },
   streakText: {
-    fontSize: 14,
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'white',
   },
   completeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
   },
-  progressContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+  progressSection: {
+    paddingHorizontal: 12,
+    paddingBottom: 12,
   },
-  progressText: {
-    fontSize: 12,
+  progressLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 4,
+  },
+  progressLabel: {
+    fontSize: 11,
   },
   progressBar: {
-    height: 6,
-    borderRadius: 3,
+    height: 4,
+    borderRadius: 2,
   },
   expandedContent: {
-    padding: 16,
-    paddingTop: 0,
-    borderTopWidth: 0.5,
-    borderTopColor: '#E0E0E0',
-  },
-  descriptionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
+    padding: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
   },
   description: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 16,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 12,
   },
-  stepsTitle: {
-    fontSize: 14,
+  stepsHeader: {
+    fontSize: 13,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   stepItem: {
     flexDirection: 'row',
-    marginBottom: 6,
+    marginBottom: 4,
+    paddingLeft: 4,
   },
-  stepNumber: {
-    width: 20,
-    fontSize: 14,
-    fontWeight: '500',
+  stepBullet: {
+    width: 12,
+    fontSize: 16,
   },
   stepText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
   },
   detailsButton: {
     alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginTop: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    marginTop: 12,
   },
   detailsButtonText: {
     color: 'white',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 12,
   },
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  }
 });
-
-export default PracticesTab;
