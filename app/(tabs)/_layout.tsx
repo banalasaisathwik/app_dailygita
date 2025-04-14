@@ -151,28 +151,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="analyse"
-        options={{
-          title: "Self Analysis",
-          headerShown: false,
-
-          headerTitle: "Mindfulness Tracker",
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="line-chart" color={color} focused={focused} />
-          ),
-          headerRight: () => (
-            <Pressable
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.6 : 1,
-                marginRight: 15,
-              })}
-            >
-              <FontAwesome name="plus" size={22} color={theme.primary} />
-            </Pressable>
-          ),
-        }}
-      />
+      
       <Tabs.Screen
         name="notes"
         options={{

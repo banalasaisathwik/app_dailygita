@@ -1,0 +1,29 @@
+import { Book, Category } from '../components/books/types';
+
+export const CATEGORIES: Category[] = [
+  { id: "all", name: "All", icon: "📚" },
+  { id: "reading-list", name: "Reading List", icon: "📖" },
+  { id: "scripture", name: "Scripture", icon: "📜" },
+  { id: "philosophy", name: "Philosophy", icon: "🧠" },
+  { id: "yoga", name: "Yoga", icon: "🧘‍♀️" },
+  { id: "mindfulness", name: "Mindfulness", icon: "🌿" },
+  { id: "biography", name: "Biography", icon: "👤" },
+  { id: "practice", name: "Practice", icon: "✨" },
+];
+
+export const BOOKS: Book[] = [
+  {
+    id: "1",
+    title: "Bhagavad Gita: As It Is",
+    author: "A.C. Bhaktivedanta Swami Prabhupada",
+    cover: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80",
+    description: "A comprehensive translation and commentary on the Bhagavad Gita, explaining the science of self-realization and the essence of all Vedic knowledge.",
+    rating: 4.9,
+    category: "Scripture",
+    isInReadingList: false,
+    userName: "John Doe",
+    userAvatar: "https://randomuser.me/api/portraits/men/1.jpg",
+    timestamp: "2h ago",
+  },
+  // ...rest of the books data
+];

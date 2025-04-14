@@ -9,7 +9,6 @@ import { useTheme } from '../../context/ThemeContext';
 import DiscussionsTab from '../screens/DiscussionsTab';
 import BooksTab from '../screens/BooksTab';
 import VideosTab from '../screens/VideosTab';
-import MeditationsTab from '../screens/MeditationsTab';
 import PracticesTab from '../screens/PracticesTab';
 
 const Tab = createMaterialTopTabNavigator();
@@ -70,13 +69,9 @@ export default function TabOneScreen() {
         <Tab.Screen 
           name="Videos" 
           component={VideosTab}
-          options={{ tabBarLabel: 'Video Teachings' }}
+          options={{ tabBarLabel: 'Video Suggestions' }}
         />
-        <Tab.Screen 
-          name="Meditations" 
-          component={MeditationsTab}
-          options={{ tabBarLabel: 'Meditations' }}
-        />
+       
         <Tab.Screen 
           name="Practices" 
           component={PracticesTab}
