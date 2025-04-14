@@ -53,7 +53,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({
 const styles = StyleSheet.create({
   categoriesWrapper: {
     borderBottomWidth: 1,
-    backgroundColor: 'white',
+    
   },
   categoriesContainer: {
     paddingHorizontal: 12,

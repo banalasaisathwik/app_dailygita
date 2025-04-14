@@ -62,8 +62,10 @@ export const BooksList: React.FC<BooksListProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    
   },
   listContainer: {
+   
     padding: 16,
     paddingTop: 8,
     paddingBottom: 80, // Space for FAB

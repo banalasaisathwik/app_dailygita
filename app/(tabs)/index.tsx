@@ -39,7 +39,7 @@ export default function TabOneScreen() {
             borderBottomColor: colors.border,
           },
           tabBarItemStyle: {
-            width: windowWidth / 2.5, // Make tabs narrower so they require scrolling
+            width: windowWidth / 2.4, // Make tabs narrower so they require scrolling
             paddingHorizontal: 10,
           },
           tabBarIndicatorStyle: {

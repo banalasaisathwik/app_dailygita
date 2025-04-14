@@ -149,7 +149,8 @@ export const CategoryList: React.FC<CategoryListProps> = ({
 const styles = StyleSheet.create({
   categoriesWrapper: {
     borderBottomWidth: 1,
-    backgroundColor: 'white',
+    borderBottomColor: '#e0e0e0',
+   
   },
   categoriesContainer: {
     paddingHorizontal: 12,

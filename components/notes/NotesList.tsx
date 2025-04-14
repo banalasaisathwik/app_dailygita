@@ -52,6 +52,9 @@ const NotesList: React.FC<NotesListProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: 16,
+    
+    
   },
   listContent: {
     paddingVertical: 8,

@@ -86,6 +86,7 @@ const BooksTab = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    
   },
 });
 
